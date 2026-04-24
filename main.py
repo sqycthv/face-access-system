@@ -14,12 +14,6 @@ import numpy as np
 ICONS = getattr(ft, "Icons", getattr(ft, "icons", None))
 NAV_BAR_DEST = getattr(ft, "NavigationBarDestination", getattr(ft, "NavigationDestination", None))
 
-# 1x1 transparent PNG placeholder for ft.Image on Android
-EMPTY_IMAGE_BASE64 = (
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="
-)
-
-
 def icon(name: str):
     if ICONS is None:
         return name
@@ -586,7 +580,7 @@ class AccessApp:
         self.current_frame = None
         self.cap = None
 
-        self.live_camera_image = ft.Image(src_base64=EMPTY_IMAGE_BASE64, fit="cover", border_radius=18, width=360, height=240)
+        self.live_camera_image = ft.Image(src="", fit="cover", border_radius=18, width=360, height=240)
 
         self.page_container = ft.Container(expand=True)
         self.login_message = ft.Text("", color=RED, size=13)
@@ -598,22 +592,51 @@ class AccessApp:
         self.page.bgcolor = BG
         self.page.padding = 0
         self.page.theme_mode = ft.ThemeMode.LIGHT
-        self.page.scroll = ft.ScrollMode.AUTO
-
-        # Android ignores desktop window properties, but Windows preview can still use them.
-        # No large minimum sizes here, so the same project can open on mobile screens.
-        try:
-            self.page.window_width = 390
-            self.page.window_height = 844
-            self.page.window_resizable = True
-        except Exception:
-            pass
+        # FULL MOBILE: окно сразу открывается как телефон.
+        # В браузере телефона интерфейс растягивается по ширине экрана.
+        self.page.window_width = 390
+        self.page.window_height = 844
+        self.page.window_min_width = 320
+        self.page.window_min_height = 620
+        self.page.scroll = ft.ScrollMode.HIDDEN
+        self.page.on_resize = lambda e: self.force_refresh_current_view(self.current_tab) if self.current_user else self.build_login_view()
 
         self.build_login_view()
 
 
     def txt(self, value: str, size: int = 14, color: str = TEXT, weight=ft.FontWeight.W_500):
         return ft.Text(value, size=size, color=color, weight=weight)
+
+    def is_mobile(self) -> bool:
+        """True, если окно похоже на телефонный экран."""
+        try:
+            return (self.page.width or 420) <= 720
+        except Exception:
+            return True
+
+    def field_width(self, default: int = 360, margin: int = 48) -> int:
+        try:
+            page_w = self.page.width or 390
+            if self.is_mobile():
+                return int(max(260, page_w - margin))
+            return int(min(default, max(260, page_w - margin)))
+        except Exception:
+            return default
+
+    def mobile_full_width(self, margin: int = 20, desktop_width: int = 520) -> int:
+        try:
+            page_w = self.page.width or 390
+            if self.is_mobile():
+                return int(max(300, page_w - margin))
+            return desktop_width
+        except Exception:
+            return desktop_width
+
+    def adaptive_row(self, controls: List[ft.Control], spacing: int = 14, expand: bool = False, **kwargs) -> ft.Control:
+        """На телефоне ставит элементы друг под другом, на ноутбуке — в строку."""
+        if self.is_mobile():
+            return ft.Column(controls, spacing=spacing, expand=expand)
+        return ft.Row(controls, spacing=spacing, expand=expand, **kwargs)
 
     def pill(self, text: str, bg: str, color: str) -> ft.Container:
         return ft.Container(
@@ -630,7 +653,7 @@ class AccessApp:
             bgcolor=SURFACE,
             border_radius=24,
             border=ft.border.all(1, BORDER),
-            padding=24,
+            padding=16 if self.is_mobile() else 24,
             content=ft.Column([
                 self.txt(title, size=18, weight=ft.FontWeight.W_700),
                 ft.Container(height=12),
@@ -767,7 +790,7 @@ class AccessApp:
 
         self.login_field = ft.TextField(
             label="Логин",
-            width=360,
+            width=self.field_width(360),
             border_radius=18,
             filled=True,
             bgcolor=SURFACE_2,
@@ -775,7 +798,7 @@ class AccessApp:
         )
         self.password_field = ft.TextField(
             label="Пароль",
-            width=360,
+            width=self.field_width(360),
             password=True,
             can_reveal_password=True,
             border_radius=18,
@@ -797,11 +820,11 @@ class AccessApp:
             self.switch_tab(default_tab)
 
         login_card = ft.Container(
-            width=520,
+            width=self.mobile_full_width(20, 520),
             bgcolor=SURFACE,
-            border_radius=34,
+            border_radius=28 if self.is_mobile() else 34,
             border=ft.border.all(1, BORDER),
-            padding=32,
+            padding=22 if self.is_mobile() else 32,
             shadow=ft.BoxShadow(blur_radius=30, color="#16000000", offset=ft.Offset(0, 12)),
             content=ft.Column([
                 ft.Container(
@@ -812,14 +835,14 @@ class AccessApp:
                     alignment=ft.Alignment(0, 0),
                     content=ft.Icon(icon("FACE_RETOUCHING_NATURAL_ROUNDED"), color=PRIMARY, size=38),
                 ),
-                self.txt("FACE ACCESS SYSTEM", size=34, weight=ft.FontWeight.W_700),
+                self.txt("FACE ACCESS SYSTEM", size=25 if self.is_mobile() else 34, weight=ft.FontWeight.W_700),
                 self.txt("Система контроля доступа с распознаванием лиц", size=15, color=MUTED),
                 ft.Container(height=8),
                 self.login_field,
                 self.password_field,
                 ft.ElevatedButton(
                     "Войти",
-                    width=360,
+                    width=self.field_width(360),
                     height=56,
                     bgcolor=PRIMARY,
                     color="white",
@@ -833,11 +856,9 @@ class AccessApp:
         hero = ft.Container(
             expand=True,
             bgcolor=BG,
-            content=ft.Row([
-                ft.Container(expand=True),
-                login_card,
-                ft.Container(expand=True),
-            ], alignment=ft.MainAxisAlignment.CENTER, vertical_alignment=ft.CrossAxisAlignment.CENTER),
+            alignment=ft.Alignment(0, 0),
+            padding=ft.padding.symmetric(horizontal=10 if self.is_mobile() else 0),
+            content=login_card,
         )
         self.page.add(hero)
         self.page.update()
@@ -886,12 +907,12 @@ class AccessApp:
 
         header = ft.Container(
             bgcolor=SURFACE,
-            padding=ft.padding.symmetric(horizontal=24, vertical=16),
+            padding=ft.padding.symmetric(horizontal=12 if self.is_mobile() else 24, vertical=12 if self.is_mobile() else 16),
             border=ft.border.only(bottom=ft.BorderSide(1, BORDER)),
             content=ft.Row([
                 ft.Row([
                     ft.Icon(icon("VERIFIED_USER_ROUNDED"), color=PRIMARY, size=28),
-                    self.txt("Face Access", size=20, weight=ft.FontWeight.W_700),
+                    self.txt("Face Access", size=17 if self.is_mobile() else 20, weight=ft.FontWeight.W_700),
                 ], spacing=10),
                 ft.Container(expand=True),
                 ft.Row([
@@ -904,7 +925,7 @@ class AccessApp:
         content = ft.Container(
             expand=True,
             bgcolor=BG,
-            padding=ft.padding.only(left=24, top=20, right=24, bottom=12),
+            padding=ft.padding.only(left=10 if self.is_mobile() else 24, top=12 if self.is_mobile() else 20, right=10 if self.is_mobile() else 24, bottom=8),
             content=self.page_container,
         )
 
@@ -921,7 +942,7 @@ class AccessApp:
             destinations=destinations,
             selected_index=0,
             label_behavior=ft.NavigationBarLabelBehavior.ALWAYS_SHOW,
-            height=78,
+            height=70 if self.is_mobile() else 78,
             bgcolor=SURFACE,
             indicator_color=PRIMARY_SOFT,
             elevation=8,
@@ -943,6 +964,8 @@ class AccessApp:
         self.page.update()
 
     def start_camera(self):
+        self.live_camera_image.width = self.field_width(360)
+        self.live_camera_image.height = 220 if self.is_mobile() else 240
         if not self.camera_running:
             self.camera_running = True
             threading.Thread(target=self.camera_loop, daemon=True).start()
@@ -961,7 +984,6 @@ class AccessApp:
         if not self.cap.isOpened():
             fallback_path = create_fallback_image("NO CAMERA FOUND")
             uri = image_file_to_data_uri(fallback_path)
-            self.live_camera_image.src_base64 = None
             self.live_camera_image.src = uri
             try:
                 self.live_camera_image.update()
@@ -977,8 +999,7 @@ class AccessApp:
                 self.current_frame = frame
                 _, buffer = cv2.imencode('.jpg', frame)
                 b64 = base64.b64encode(buffer).decode('utf-8')
-                self.live_camera_image.src = "" 
-                self.live_camera_image.src_base64 = b64 
+                self.live_camera_image.src = f"data:image/jpeg;base64,{b64}" 
 
                 try:
                     self.live_camera_image.update()
@@ -1103,7 +1124,7 @@ class AccessApp:
     def face_page(self) -> ft.Control:
         zone_dropdown = ft.Dropdown(
             label="Зона доступа", value=ZONES[0], options=[ft.dropdown.Option(z) for z in ZONES],
-            width=260, border_radius=16, filled=True, bgcolor=SURFACE_2, border_color=BORDER,
+            width=self.field_width(260), border_radius=16, filled=True, bgcolor=SURFACE_2, border_color=BORDER,
         )
 
         left = self.card(
@@ -1148,8 +1169,8 @@ class AccessApp:
             ),
         ]
 
-        right = self.card("Результат", ft.Column(result_rows, spacing=0), width=390)
-        return ft.Row([left, right], spacing=18, expand=True, vertical_alignment=ft.CrossAxisAlignment.START)
+        right = self.card("Результат", ft.Column(result_rows, spacing=0), width=None if self.is_mobile() else 390)
+        return self.adaptive_row([left, right], spacing=18, expand=True, vertical_alignment=ft.CrossAxisAlignment.START)
 
     def request_card(self, item: Dict[str, Any], can_review: bool) -> ft.Control:
         status = item.get("status", "pending")
@@ -1271,13 +1292,13 @@ class AccessApp:
         ] or [self.txt("Нет активных временных пропусков", color=MUTED)]
 
         return ft.Column([
-            ft.Row([
+            self.adaptive_row([
                 self.metric_card("Мои события", str(len(user_logs)), BLUE, BLUE_SOFT),
                 self.metric_card("Активные заявки", str(len(pending)), AMBER, AMBER_SOFT),
                 self.metric_card("Временные пропуска", str(len(active)), PRIMARY, PRIMARY_SOFT),
             ], spacing=14),
             ft.Container(height=16),
-            ft.Row([
+            self.adaptive_row([
                 self.card("Мои зоны доступа", ft.Column(zone_controls, spacing=10), expand=True),
                 self.card("Временный доступ", ft.Column(temp_controls, spacing=10), expand=True),
             ], spacing=16),
@@ -1353,7 +1374,7 @@ class AccessApp:
             ) for p in active_passes
         ] or [self.txt("Сейчас нет активных временных пропусков", color=MUTED)]
 
-        return ft.Row([
+        return self.adaptive_row([
             self.card(
                 "Профиль",
                 ft.Column([
@@ -1363,7 +1384,7 @@ class AccessApp:
                     self.txt(f"Роль: {user.get('role', 'student')}", color=MUTED),
                     self.txt(f"Логин: {user.get('login', '-')}", color=MUTED),
                 ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=4),
-                width=340,
+                width=None if self.is_mobile() else 340,
             ),
             self.card(
                 "Активные пропуска",
@@ -1562,14 +1583,14 @@ class AccessApp:
         ]
 
         return ft.Column([
-            ft.Row([
+            self.adaptive_row([
                 self.metric_card("Пользователи", str(len(users)), PRIMARY, PRIMARY_SOFT),
                 self.metric_card("Активные зоны", str(metrics["active_zones"]), GREEN, GREEN_SOFT),
                 self.metric_card("Ожидают заявки", str(metrics["pending_requests"]), AMBER, AMBER_SOFT),
                 self.metric_card("Подозрительные", str(metrics["suspicious"]), RED, RED_SOFT),
             ], spacing=14),
             ft.Container(height=16),
-            ft.Row([camera_card, register_card], spacing=16, vertical_alignment=ft.CrossAxisAlignment.START),
+            self.adaptive_row([camera_card, register_card], spacing=16, vertical_alignment=ft.CrossAxisAlignment.START),
             ft.Container(height=16),
             self.card("Последние пользователи", ft.Row(rows or [self.txt("Нет пользователей", color=MUTED)], wrap=True, spacing=10)),
         ], expand=True, scroll=ft.ScrollMode.AUTO)
@@ -1752,12 +1773,12 @@ class AccessApp:
         cleanup_block = self.card(
             "Очистка данных",
             ft.Column([
-                ft.Row([
+                self.adaptive_row([
                     cleanup_tile("Заявки", "Удалить все заявки", "APPROVAL_ROUNDED", self.admin_clear_requests_confirm),
                     cleanup_tile("Журнал", "Очистить все записи", "RECEIPT_LONG_ROUNDED", self.admin_clear_logs_confirm),
                 ], spacing=12),
                 ft.Container(height=12),
-                ft.Row([
+                self.adaptive_row([
                     cleanup_tile("Пропуска", "Удалить временные пропуска", "TIMER_OFF_ROUNDED", self.admin_clear_temp_passes_confirm),
                     cleanup_tile("Фото", "Удалить сохранённые снимки", "PHOTO_LIBRARY_ROUNDED", self.admin_clear_captures_confirm),
                 ], spacing=12),
@@ -1943,14 +1964,14 @@ class AccessApp:
         ] or [self.txt("Нет данных по зонам", color=MUTED)]
 
         return ft.Column([
-            ft.Row([
+            self.adaptive_row([
                 self.metric_card("Разрешено", str(metrics["allowed"]), GREEN, GREEN_SOFT),
                 self.metric_card("Отказано", str(metrics["denied"]), RED, RED_SOFT),
                 self.metric_card("FAR", f"{metrics['far']}%", BLUE, BLUE_SOFT),
                 self.metric_card("FRR", f"{metrics['frr']}%", AMBER, AMBER_SOFT),
             ], spacing=14),
             ft.Container(height=16),
-            ft.Row([
+            self.adaptive_row([
                 self.card(
                     "График по времени суток",
                     ft.Column([
@@ -1971,7 +1992,7 @@ class AccessApp:
                 ),
             ], spacing=16),
             ft.Container(height=16),
-            ft.Row([
+            self.adaptive_row([
                 self.card("Подозрительные попытки", ft.Column(suspicious_controls, spacing=10), expand=True),
                 self.card("Активные зоны", ft.Column(zone_controls, spacing=10), expand=True),
             ], spacing=16),
@@ -1982,4 +2003,6 @@ def main(page: ft.Page):
     AccessApp(page)
 
 if __name__ == "__main__":
-    ft.run(main)
+    # Можно запускать обычной командой: python main.py
+    # host="0.0.0.0" нужен, чтобы телефон видел проект в одной сети.
+    ft.app(target=main, view=ft.AppView.WEB_BROWSER, host="0.0.0.0", port=8000)
