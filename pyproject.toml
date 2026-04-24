@@ -1,0 +1,18 @@
+[project]
+name = "flet_app_clean"
+version = "1.0.0"
+description = "Face Access System Android app"
+dependencies = [
+    "flet",
+    "numpy",
+    "opencv-python",
+    "certifi",
+]
+
+[tool.flet]
+org = "com.nuri"
+product = "Face Access System"
+
+[tool.flet.app]
+path = "."
+module = "main"

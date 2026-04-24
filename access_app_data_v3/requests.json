@@ -1,0 +1,17 @@
+[
+  {
+    "id": "req_1776975050820",
+    "user_login": "student",
+    "user_name": "Student",
+    "user_role": "student",
+    "zone": "Деканат",
+    "reason": "Нужен временный доступ для встречи",
+    "requested_until": "2026-04-24T03:10",
+    "target_role": "admin",
+    "status": "pending",
+    "comment": "",
+    "created_at": "2026-04-24 01:10:50",
+    "reviewed_at": "",
+    "reviewed_by": ""
+  }
+]

@@ -1,0 +1,5 @@
+build/
+dist/
+*.exe
+*.apk
+__pycache__/

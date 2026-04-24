@@ -1,0 +1,11 @@
+[
+  {
+    "id": "pass_1776975050820",
+    "login": "student",
+    "zone": "Лаборатория 208",
+    "start_at": "2026-04-24T01:10",
+    "end_at": "2026-04-24T01:18",
+    "created_by": "admin",
+    "status": "expired"
+  }
+]
