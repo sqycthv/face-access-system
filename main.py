@@ -11,7 +11,7 @@ import sys
 import types
 
 fake_border_mod = types.ModuleType("flet.controls.border")
-fake-border_mod.all = lambda *args, **kwargs: None
+fake_border_mod.all = lambda *args, **kwargs: None
 sys.modules["flet.controls.border"] = fake_border_mod
 
 import flet as ft
