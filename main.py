@@ -979,7 +979,7 @@ class AccessApp:
     def camera_loop(self):
         self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
         if not self.cap.isOpened():
-            self.cap = cv2.VideoCapture(0)
+            self.cap = cv2.VideoCapture("rtsp://admin:Nursaya_19@172.16.9.21:554/Streaming/Channels/101")
 
         if not self.cap.isOpened():
             fallback_path = create_fallback_image("NO CAMERA FOUND")
