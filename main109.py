@@ -948,21 +948,30 @@ class AccessApp:
         self.camera_running = True
         threading.Thread(target=self.camera_loop, daemon=True).start()
 
+    def stop_camera(self):
+        self.camera_running = False
+        if hasattr(self, 'cap') and self.cap is not None:
+            self.cap.release()
+            self.cap = None
+
     # 2. Поток камеры (только считывает кадры)
     def camera_loop(self):
         self.cap = cv2.VideoCapture(0)
         while self.camera_running:
             ret, frame = self.cap.read()
-            if ret:
-                # ... обработка кадра (base64) ...
-                # БЕЗОПАСНЫЙ ВЫЗОВ (передаем данные в главный поток)
+            if ret and frame is not None:
+                # Преобразуем кадр в base64
+                _, buffer = cv2.imencode('.jpg', frame)
+                b64_data = base64.b64encode(buffer).decode('utf-8')
+                
+                # Теперь передаем переменную, которая существует
                 self.page.run_task(self.update_ui, b64_data)
             time.sleep(0.04)
 
     # 3. Функция отрисовки (работает только в главном потоке)
     def update_ui(self, b64_data):
-        self.live_camera_image.src = f"data:image/jpeg;base64,{b64_data}"
-        self.live_camera_image.update() # Это обновление теперь БЕЗОПАСНО
+        self.live_camera_image.src_base64 = b64_data # Используем src_base64 для Flet
+        self.live_camera_image.update()
             
     def switch_tab(self, key: str) -> None:
         self.store.cleanup_expired_passes()
