@@ -70,6 +70,16 @@ ROLE_DEFAULT_ZONES = {
     "admin": ZONES[:],
 }
 
+
+CAMERA_USER = "admin"
+CAMERA_PASS = "Nursaya_19"
+CAMERA_IP = "172.16.9.21"
+CAMERA_PORT = "554"
+CHANNEL = "102"
+
+
+RTSP_URL = f"rtsp://{admin}:{Nursaya_19}@{172.16.9.21}:{554}/ISAPI/Streaming/Channels/{102}"
+
 CASCADE = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
 
@@ -137,33 +147,25 @@ def create_fallback_image(text: str = "NO CAMERA") -> str:
 
 
 def capture_attempt_snapshot() -> Tuple[str, bool]:
-    indexes = [0, 1, 2]
-    for idx in indexes:
-        cap = None
-        try:
-            cap = cv2.VideoCapture(idx, cv2.CAP_DSHOW)
-        except Exception:
-            try:
-                cap = cv2.VideoCapture(idx)
-            except Exception:
-                cap = None
-        if cap is None:
-            continue
-        try:
-            if cap.isOpened():
-                ok, frame = cap.read()
-                if ok and frame is not None:
-                    frame = cv2.flip(frame, 1)
-                    path = save_frame(frame, "attempt")
-                    cap.release()
-                    return path, True
-        except Exception:
-            pass
+    cap = None
+    try:
+        cap = cv2.VideoCapture(RTSP_URL)
+        if cap.isOpened():
+            ok, frame = cap.read()
+            if ok and frame is not None:
+                path = save_frame(frame, "attempt")
+                cap.release()
+                return path, True
+    except Exception:
+        pass
+    
+    if cap is not None:
         try:
             cap.release()
         except Exception:
             pass
-    return create_fallback_image(), False
+            
+    return create_fallback_image("IP CAMERA OFFLINE"), False
 
 
 def crop_biggest_face(frame: np.ndarray) -> Optional[np.ndarray]:
@@ -536,7 +538,6 @@ class DataStore:
 
         self.save_all()
         return True, f"Фото очищены: {removed}"
-        
     def metrics(self) -> Dict[str, Any]:
         self.cleanup_expired_passes()
         total = max(1, len(self.logs))
@@ -593,6 +594,8 @@ class AccessApp:
         self.page.bgcolor = BG
         self.page.padding = 0
         self.page.theme_mode = ft.ThemeMode.LIGHT
+        # FULL MOBILE: окно сразу открывается как телефон.
+        # В браузере телефона интерфейс растягивается по ширине экрана.
         self.page.window_width = 390
         self.page.window_height = 844
         self.page.window_min_width = 320
@@ -607,6 +610,7 @@ class AccessApp:
         return ft.Text(value, size=size, color=color, weight=weight)
 
     def is_mobile(self) -> bool:
+        """True, если окно похоже на телефонный экран."""
         try:
             return (self.page.width or 420) <= 720
         except Exception:
@@ -631,6 +635,7 @@ class AccessApp:
             return desktop_width
 
     def adaptive_row(self, controls: List[ft.Control], spacing: int = 14, expand: bool = False, **kwargs) -> ft.Control:
+        """На телефоне ставит элементы друг под другом, на ноутбуке — в строку."""
         if self.is_mobile():
             return ft.Column(controls, spacing=spacing, expand=expand)
         return ft.Row(controls, spacing=spacing, expand=expand, **kwargs)
@@ -777,6 +782,7 @@ class AccessApp:
         self.build_shell()
         self.switch_tab(current)
 
+
     def build_login_view(self) -> None:
         self.page.clean()
         self.page.navigation_bar = None
@@ -848,6 +854,7 @@ class AccessApp:
                 self.login_message,
             ], spacing=14, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
         )
+
         hero = ft.Container(
             expand=True,
             bgcolor=BG,
@@ -860,6 +867,7 @@ class AccessApp:
 
     def logout(self) -> None:
         self.stop_camera()
+
         self.current_user = None
         self.current_tab = "home"
         self.build_login_view()
@@ -895,6 +903,7 @@ class AccessApp:
         self.page.vertical_alignment = ft.MainAxisAlignment.START
         self.page.horizontal_alignment = ft.CrossAxisAlignment.STRETCH
         self.page.scroll = ft.ScrollMode.HIDDEN
+
         user = self.current_user or {}
         role_label = {"student": "Студент", "teacher": "Преподаватель", "admin": "Админ"}.get(user.get("role"), "Пользователь")
 
@@ -906,32 +915,45 @@ class AccessApp:
                 ft.Row([
                     ft.Icon(icon("VERIFIED_USER_ROUNDED"), color=PRIMARY, size=28),
                     self.txt("Face Access", size=17 if self.is_mobile() else 20, weight=ft.FontWeight.W_700),
-                ], spacing=8),
+                ], spacing=10),
                 ft.Container(expand=True),
                 ft.Row([
-                    self.txt(user.get('name', ''), weight=ft.FontWeight.W_700, size=13 if self.is_mobile() else 14),
-                    self.pill(role_label, PRIMARY_SOFT, PRIMARY),
-                    ft.IconButton(icon=icon("LOGOUT_ROUNDED"), icon_color=RED, icon_size=20, on_click=lambda _: self.logout()),
-                ], spacing=10),
+                    self.txt(f"{user.get('name', '')} ({role_label})", size=14, color=MUTED),
+                    ft.IconButton(icon("LOGOUT_ROUNDED"), icon_color=RED, on_click=lambda e: self.logout())
+                ])
             ])
         )
 
+        content = ft.Container(
+            expand=True,
+            bgcolor=BG,
+            padding=ft.padding.only(left=10 if self.is_mobile() else 24, top=12 if self.is_mobile() else 20, right=10 if self.is_mobile() else 24, bottom=8),
+            content=self.page_container,
+        )
+
         nav_items = self.get_nav_items()
-        if self.is_mobile():
         destinations = []
         for key, label, nav_icon in nav_items:
-            destinations.append(NAV_BAR_DEST(icon=ico, label=label))
-
-        def on_nav_change(e):
-            idx = int(e.data)
-            if 0 <= idx < len(nav_items):
-                self.switch_tab(nav_items[idx][0])
+            if NAV_BAR_DEST is not None:
+                try:
+                    destinations.append(NAV_BAR_DEST(icon=nav_icon, selected_icon=nav_icon, label=label))
+                except TypeError:
+                    destinations.append(NAV_BAR_DEST(icon=nav_icon, label=label))
 
         self.page.navigation_bar = ft.NavigationBar(
-            destinations=destinations, on_change=on_nav_change, bgcolor=SURFACE, border=ft.border.only(top=ft.BorderSide(1, BORDER)),
+            destinations=destinations,
+            selected_index=0,
+            label_behavior=ft.NavigationBarLabelBehavior.ALWAYS_SHOW,
+            height=70 if self.is_mobile() else 78,
+            bgcolor=SURFACE,
+            indicator_color=PRIMARY_SOFT,
+            elevation=8,
+            on_change=lambda e: self.switch_tab(nav_items[e.control.selected_index][0]),
         )
-        body = ft.Column([header, ft.Container(content=self.page_container, expand=True)], expand=True, spacing=0)
-        self.page.add(body)
+
+        self.page.add(header, content)
+        self.page.update()
+
 
     def update_sidebar(self) -> None:
         for key, btn in self.sidebar_buttons.items():
@@ -957,25 +979,12 @@ class AccessApp:
             self.cap = None
 
     def camera_loop(self):
-        is_render = os.environ.get("RENDER") is not None
-        self.cap = None
-        
-        if not is_render:
-            try:
-                self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-            except Exception:
-                self.cap = None
+        self.cap = cv2.VideoCapture(RTSP_URL)
+        if not self.cap.isOpened():
+            self.cap = cv2.VideoCapture(0)
 
-        if self.cap is None or not self.cap.isOpened():
-            try:
-                os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp|timeout;5000000"
-                self.cap = cv2.VideoCapture("rtsp://admin:Nursaya_19@172.16.9.21:554/Streaming/Channels/101")
-            except Exception as e:
-                print(f"Ошибка подключения к IP-камере: {e}")
-                self.cap = None
-
-        if self.cap is None or not self.cap.isOpened():
-            fallback_path = create_fallback_image("CAMERA NOT AVAILABLE (OFFLINE)")
+        if not self.cap.isOpened():
+            fallback_path = create_fallback_image("IP CAMERA NOT FOUND")
             uri = image_file_to_data_uri(fallback_path)
             self.live_camera_image.src = uri
             try:
@@ -984,8 +993,6 @@ class AccessApp:
                 pass
             self.camera_running = False
             return
-
-        while self.camera_running:
 
         while self.camera_running:
             ret, frame = self.cap.read()
