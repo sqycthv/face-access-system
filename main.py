@@ -786,7 +786,7 @@ class AccessApp:
         self.page.navigation_bar = None
         self.page.scroll = ft.ScrollMode.HIDDEN
         self.page.vertical_alignment = ft.MainAxisAlignment.CENTER
-        self.page.alignment = ft.alignment.center
+        self.page.alignment = "center"
 
         self.login_field = ft.TextField(
             label="Логин",
