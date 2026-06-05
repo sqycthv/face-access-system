@@ -641,7 +641,7 @@ class AccessApp:
 
     def pill(self, text: str, bg: str, color: str) -> ft.Container:
         return ft.Container(
-            padding=ft.padding.symmetric(horizontal=12, vertical=8),
+            padding=ft.Padding(left=20, right=20, top=10, bottom=10),
             bgcolor=bg,
             border_radius=999,
             content=ft.Text(text, color=color, size=12, weight=ft.FontWeight.W_700),
@@ -858,7 +858,7 @@ class AccessApp:
             expand=True,
             bgcolor=BG,
             alignment=ft.Alignment(0, 0),
-            padding=ft.padding.symmetric(horizontal=10 if self.is_mobile() else 0),
+            padding=ft.Padding(left=10 if self.is_mobile() else 0, right=10 if self.is_mobile() else 0, top=0, bottom=0),
             content=login_card,
         )
         self.page.add(hero)
@@ -908,7 +908,7 @@ class AccessApp:
 
         header = ft.Container(
             bgcolor=SURFACE,
-            padding=ft.padding.symmetric(horizontal=12 if self.is_mobile() else 24, vertical=12 if self.is_mobile() else 16),
+            padding=ft.Padding(left=12 if self.is_mobile() else 24, right=12 if self.is_mobile() else 24, top=12 if self.is_mobile() else 16, bottom=12 if self.is_mobile() else 16),
             border=ft.Border.only(bottom=ft.BorderSide(1, BORDER)),
             content=ft.Row([
                 ft.Row([
@@ -1658,7 +1658,7 @@ class AccessApp:
                                 self.txt(u.get("name", "Без имени"), size=15, weight=ft.FontWeight.W_700),
                                 ft.Container(expand=True),
                                 ft.Container(
-                                    padding=ft.padding.symmetric(horizontal=10, vertical=6),
+                                    padding=ft.Padding(left=10, right=10, top=6, bottom=6),
                                     border_radius=999,
                                     bgcolor=role_bg,
                                     content=self.txt(role_label, size=11, weight=ft.FontWeight.W_700, color=role_color),
