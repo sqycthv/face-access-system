@@ -926,7 +926,7 @@ class AccessApp:
         content = ft.Container(
             expand=True,
             bgcolor=BG,
-            padding=ft.padding.only(left=10 if self.is_mobile() else 24, top=12 if self.is_mobile() else 20, right=10 if self.is_mobile() else 24, bottom=8),
+            padding=ft.Padding(left=10 if self.is_mobile() else 24, top=12 if self.is_mobile() else 20, right=10 if self.is_mobile() else 24, bottom=8),
             content=self.page_container,
         )
 
@@ -1699,7 +1699,7 @@ class AccessApp:
                         ft.Container(
                             bgcolor=SURFACE,
                             border_radius=14,
-                            padding=ft.padding.only(left=14, top=10, right=14, bottom=10),
+                            padding=ft.Padding(left=14, top=10, right=14, bottom=10),
                             border=ft.Border.all(1, BORDER),
                             content=cb,
                         )
