@@ -978,7 +978,7 @@ class AccessApp:
             self.cap = None
 
     def camera_loop(self):
-        self.cap = cv2.VideoCapture(RTSP_URL)
+        self.cap = cv2.VideoCapture(0)
         if not self.cap.isOpened():
             self.cap = cv2.VideoCapture(0)
 
