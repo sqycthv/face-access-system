@@ -35,6 +35,14 @@ CAPTURE_DIR = os.path.join(DATA_DIR, "captures")
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(CAPTURE_DIR, exist_ok=True)
 
+CAMERA_USER = "admin"
+CAMERA_PASS = "Nursaya_19"
+CAMERA_IP = "172.16.9.21"
+CAMERA_PORT = "554"
+CHANNEL = "102"
+RTSP_URL = f"rtsp://{admin}:{Nursaya_19}@{172.16.9.21}:{554}/ISAPI/Streaming/Channels/{102}"
+
+
 BG = "#F4F7FB"
 SURFACE = "#FFFFFF"
 SURFACE_2 = "#F8FAFD"
@@ -70,15 +78,6 @@ ROLE_DEFAULT_ZONES = {
     "admin": ZONES[:],
 }
 
-
-CAMERA_USER = "admin"
-CAMERA_PASS = "Nursaya_19"
-CAMERA_IP = "172.16.9.21"
-CAMERA_PORT = "554"
-CHANNEL = "102"
-
-
-RTSP_URL = f"rtsp://{admin}:{Nursaya_19}@{172.16.9.21}:{554}/ISAPI/Streaming/Channels/{102}"
 
 CASCADE = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
