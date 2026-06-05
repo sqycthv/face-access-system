@@ -960,7 +960,7 @@ class AccessApp:
             row = btn.content
             row.controls[0].color = "white" if active else MUTED
             row.controls[1].color = "white" if active else TEXT
-            btn.border = ft.Border.all(1, PRIMARY if active else BORDER)
+            btn.border = ft.border.all(1, PRIMARY if active else BORDER)
         self.page.update()
 
     def start_camera(self):
