@@ -652,7 +652,7 @@ class AccessApp:
             width=width,
             bgcolor=SURFACE,
             border_radius=24,
-            border=1,
+            border=ft.border.all(1, BORDER),
             padding=16 if self.is_mobile() else 24,
             content=ft.Column([
                 self.txt(title, size=18, weight=ft.FontWeight.W_700),
@@ -666,7 +666,7 @@ class AccessApp:
             expand=True,
             bgcolor=SURFACE,
             border_radius=22,
-            border=1
+            border=ft.border.all(1, BORDER),
             padding=18,
             content=ft.Column([
                 self.txt(title, size=13, color=MUTED),
@@ -718,7 +718,7 @@ class AccessApp:
         return ft.Container(
             bgcolor=AMBER_SOFT,
             border_radius=18,
-            border=1
+            border=ft.border.all(1, BORDER),
             padding=14,
             content=ft.Row([
                 ft.Icon(icon("NOTIFICATIONS_ACTIVE_ROUNDED"), color=AMBER),
@@ -823,7 +823,7 @@ class AccessApp:
             width=self.mobile_full_width(20, 520),
             bgcolor=SURFACE,
             border_radius=28 if self.is_mobile() else 34,
-            border=1
+            border=ft.border.all(1, BORDER),
             padding=22 if self.is_mobile() else 32,
             shadow=ft.BoxShadow(blur_radius=30, color="#16000000", offset=ft.Offset(0, 12)),
             content=ft.Column([
