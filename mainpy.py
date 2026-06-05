@@ -943,9 +943,9 @@ class AccessApp:
         self.page.update()
 
     def start_camera(self):
+        # Делаем запуск «ленивым»
         if not self.camera_running:
             self.camera_running = True
-            # Запускаем поток
             threading.Thread(target=self.camera_loop, daemon=True).start()
 
     def stop_camera(self):
