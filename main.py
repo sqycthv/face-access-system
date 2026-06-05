@@ -37,7 +37,7 @@ os.makedirs(CAPTURE_DIR, exist_ok=True)
 
 CAMERA_USER = "admin"
 CAMERA_PASS = "Nursaya_19"
-CAMERA_IP = "172.16.9.21"
+CAMERA_IP = "192.168.1.200"
 CAMERA_PORT = "554"
 CHANNEL = "102"
 RTSP_URL = f"rtsp://{CAMERA_USER}:{CAMERA_PASS}@{CAMERA_IP}:{CAMERA_PORT}/ISAPI/Streaming/Channels/{CHANNEL}"
