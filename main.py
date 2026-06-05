@@ -977,12 +977,25 @@ class AccessApp:
             self.cap = None
 
     def camera_loop(self):
-        self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-        if not self.cap.isOpened():
-            self.cap = cv2.VideoCapture("rtsp://admin:Nursaya_19@172.16.9.21:554/Streaming/Channels/101")
+        is_render = os.environ.get("RENDER") is not None
+        self.cap = None
+        
+        if not is_render:
+            try:
+                self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            except Exception:
+                self.cap = None
 
-        if not self.cap.isOpened():
-            fallback_path = create_fallback_image("NO CAMERA FOUND")
+        if self.cap is None or not self.cap.isOpened():
+            try:
+                os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp|timeout;5000000"
+                self.cap = cv2.VideoCapture("rtsp://admin:Nursaya_19@172.16.9.21:554/Streaming/Channels/101")
+            except Exception as e:
+                print(f"Ошибка подключения к RTSP: {e}")
+                self.cap = None
+
+        if self.cap is None or not self.cap.isOpened():
+            fallback_path = create_fallback_image("CAMERA NOT AVAILABLE (OFFLINE)")
             uri = image_file_to_data_uri(fallback_path)
             self.live_camera_image.src = uri
             try:
@@ -2003,6 +2016,11 @@ def main(page: ft.Page):
     AccessApp(page)
 
 if __name__ == "__main__":
-    # Можно запускать обычной командой: python main.py
-    # host="0.0.0.0" нужен, чтобы телефон видел проект в одной сети.
-    ft.app(target=main, view=ft.AppView.WEB_BROWSER, host="0.0.0.0", port=10000)
+    port = int(os.environ.get("PORT", 8502))
+
+    ft.app(
+        target=main, 
+        view=ft.AppView.WEB_BROWSER, 
+        port=port,
+        host="0.0.0.0"
+    )
