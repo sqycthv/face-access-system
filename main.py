@@ -7,21 +7,9 @@ import threading
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
-import sys
-import types
-
-fake_border_mod = types.ModuleType("flet.controls.border")
-fake_border_mod.all = lambda *args, **kwargs: None
-sys.modules["flet.controls.border"] = fake_border_mod
 
 import flet as ft
 import numpy as np
-
-try:
-    import flet.controls.border
-    flet.controls.border.all = ft.border.all
-except Exception:
-    pass
 
 
 ICONS = getattr(ft, "Icons", getattr(ft, "icons", None))
@@ -921,7 +909,7 @@ class AccessApp:
         header = ft.Container(
             bgcolor=SURFACE,
             padding=ft.padding.Padding(left=12 if self.is_mobile() else 24, vertical=12 if self.is_mobile() else 16),
-            border=1,
+            border=ft.border.all(1, BORDER),
             content=ft.Row([
                 ft.Row([
                     ft.Icon(icon("VERIFIED_USER_ROUNDED"), color=PRIMARY, size=28),
@@ -1242,7 +1230,7 @@ class AccessApp:
                 ),
             ], spacing=10)
             body_controls += [ft.Container(height=10), comment_field, ft.Container(height=8), actions]
-        return ft.Container(bgcolor=SURFACE, border_radius=20, border=1, padding=16, content=ft.Column(body_controls, spacing=0))
+        return ft.Container(bgcolor=SURFACE, border_radius=20, border=ft.border.all(1, BORDER), padding=16, content=ft.Column(body_controls, spacing=0))
 
     def handle_review(self, request_id: str, approved: bool, comment: str) -> None:
         reviewer = self.current_user.get("login", "admin") if self.current_user else "admin"
@@ -1268,7 +1256,7 @@ class AccessApp:
                 ft.Container(
                     bgcolor=SURFACE,
                     border_radius=20,
-                    border=1,
+                    border=ft.border.all(1, BORDER),
                     padding=14,
                     content=ft.Row([
                         self.image_box(item.get("photo_path", ""), 92, 72),
@@ -1460,7 +1448,7 @@ class AccessApp:
                 ft.Container(
                     bgcolor=SURFACE,
                     border_radius=20,
-                    border=1,
+                    border=ft.border.all(1, BORDER),
                     padding=16,
                     content=ft.Row([
                         self.image_box(student.get("photo_path", ""), 72, 72),
@@ -1659,7 +1647,7 @@ class AccessApp:
                         padding=14,
                         border_radius=14,
                         bgcolor=SURFACE_2,
-                        border=1,
+                        border=ft.border.all(1, BORDER),
                         content=self.txt("В базе пока нет пользователей", color=MUTED),
                     )
                 )
@@ -1677,7 +1665,7 @@ class AccessApp:
                         padding=14,
                         border_radius=16,
                         bgcolor=SURFACE,
-                        border=1,
+                        border=ft.border.all(1, BORDER),
                         content=ft.Column([
                             ft.Row([
                                 self.txt(u.get("name", "Без имени"), size=15, weight=ft.FontWeight.W_700),
@@ -1709,7 +1697,7 @@ class AccessApp:
                         padding=16,
                         border_radius=14,
                         bgcolor=SURFACE_2,
-                        border=1,
+                        border=ft.border.all(1, BORDER),
                         content=self.txt("В этой категории пока нет пользователей", color=MUTED),
                     )
                 )
@@ -1725,7 +1713,7 @@ class AccessApp:
                             bgcolor=SURFACE,
                             border_radius=14,
                             padding=ft.padding.Padding(left=14, top=10, right=14, bottom=10),
-                            border=1,
+                            border=ft.border.all(1, BORDER),
                             content=cb,
                         )
                     )
@@ -1778,7 +1766,7 @@ class AccessApp:
                 bgcolor=SURFACE,
                 border_radius=18,
                 padding=16,
-                border=1,
+                border=ft.border.all(1, BORDER),
                 content=ft.Column([
                     ft.Icon(icon(icon_name), color=AMBER, size=24),
                     ft.Container(height=8),
