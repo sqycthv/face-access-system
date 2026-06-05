@@ -1975,4 +1975,4 @@ def main(page: ft.Page):
     AccessApp(page)
 
 if __name__ == "__main__":
-    ft.run(main)
+    ft.app(target=main)
