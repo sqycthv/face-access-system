@@ -40,7 +40,7 @@ CAMERA_PASS = "Nursaya_19"
 CAMERA_IP = "172.16.9.21"
 CAMERA_PORT = "554"
 CHANNEL = "102"
-RTSP_URL = f"rtsp://{admin}:{Nursaya_19}@{172.16.9.21}:{554}/ISAPI/Streaming/Channels/{102}"
+RTSP_URL = f"rtsp://{CAMERA_USER}:{CAMERA_PASS}@{CAMERA_IP}:{CAMERA_PORT}/ISAPI/Streaming/Channels/{CHANNEL}"
 
 
 BG = "#F4F7FB"
@@ -961,7 +961,7 @@ class AccessApp:
             row = btn.content
             row.controls[0].color = "white" if active else MUTED
             row.controls[1].color = "white" if active else TEXT
-            btn.border = ft.border.all(1, PRIMARY if active else BORDER)
+            btn.border = ft.Border.all(1, PRIMARY if active else BORDER)
         self.page.update()
 
     def start_camera(self):
