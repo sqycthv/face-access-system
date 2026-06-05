@@ -640,7 +640,7 @@ class AccessApp:
 
     def pill(self, text: str, bg: str, color: str) -> ft.Container:
         return ft.Container(
-            padding=ft.padding.Padding(left=12, rigth=8),
+            padding=ft.padding.Padding(left=12, right=8),
             bgcolor=bg,
             border_radius=999,
             content=ft.Text(text, color=color, size=12, weight=ft.FontWeight.W_700),
