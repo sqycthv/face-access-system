@@ -7,11 +7,21 @@ import threading
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
+import sys
+import types
+
+fake_border_mod = types.ModuleType("flet.controls.border")
+fake-border_mod.all = lambda *args, **kwargs: None
+sys.modules["flet.controls.border"] = fake_border_mod
+
 import flet as ft
 import numpy as np
 
-import flet.controls.border
-flet.controls.border.all = ft.border.all
+try:
+    import flet.controls.border
+    flet.controls.border.all = ft.border.all
+except Exception:
+    pass
 
 
 ICONS = getattr(ft, "Icons", getattr(ft, "icons", None))
