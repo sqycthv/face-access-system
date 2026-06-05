@@ -964,10 +964,15 @@ class AccessApp:
         self.page.update()
 
     def start_camera(self):
-        self.live_camera_image.width = self.field_width(360)
-        self.live_camera_image.height = 220 if self.is_mobile() else 240
+        # 1. Задаем размеры элемента для камеры, чтобы он не схлопывался
+        self.live_camera_image.width = 360
+        self.live_camera_image.height = 240
+        
+        # 2. Проверяем, запущена ли камера уже, чтобы не дублировать потоки
         if not self.camera_running:
             self.camera_running = True
+            # 3. Запускаем поток с параметром daemon=True, 
+            # чтобы он автоматически закрывался при выходе из программы
             threading.Thread(target=self.camera_loop, daemon=True).start()
 
     def stop_camera(self):
@@ -978,18 +983,13 @@ class AccessApp:
 
     def camera_loop(self):
         self.cap = cv2.VideoCapture(0)
+        
+        # Если камера не открылась, пробуем еще раз (ваша логика)
         if not self.cap.isOpened():
             self.cap = cv2.VideoCapture(0)
 
         if not self.cap.isOpened():
-            fallback_path = create_fallback_image("IP CAMERA NOT FOUND")
-            uri = image_file_to_data_uri(fallback_path)
-            self.live_camera_image.src = uri
-            try:
-                self.live_camera_image.update()
-            except Exception:
-                pass
-            self.camera_running = False
+            print("Ошибка: Камера не найдена")
             return
 
         while self.camera_running:
@@ -999,16 +999,21 @@ class AccessApp:
                 self.current_frame = frame
                 _, buffer = cv2.imencode('.jpg', frame)
                 b64 = base64.b64encode(buffer).decode('utf-8')
-                self.live_camera_image.src = f"data:image/jpeg;base64,{b64}" 
-
-                try:
-                    self.live_camera_image.update()
-                except Exception:
-                    pass
+                
+                # --- ВАЖНО: ИСПОЛЬЗУЕМ RUN_TASK ---
+                # Мы не обновляем image напрямую, а просим Flet обновить его
+                self.page.run_task(self.update_image_on_ui, b64)
+                # ----------------------------------
+            
             time.sleep(0.04) 
 
         if self.cap:
             self.cap.release()
+
+    # Эта функция будет вызываться в главном потоке (безопасно!)
+    def update_image_on_ui(self, b64_data):
+        self.live_camera_image.src = f"data:image/jpeg;base64,{b64_data}"
+        self.live_camera_image.update()
 
     def switch_tab(self, key: str) -> None:
         self.store.cleanup_expired_passes()
