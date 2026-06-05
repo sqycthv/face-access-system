@@ -850,7 +850,7 @@ class AccessApp:
                     on_click=do_login,
                 ),
                 self.login_message,
-            ], spacing=14, alignment=ft.alignment.center),
+            ], spacing=14, alignment="center"),
         )
 
         hero = ft.Container(
@@ -1383,7 +1383,7 @@ class AccessApp:
                     self.txt(user.get("name", "Пользователь"), size=24, weight=ft.FontWeight.W_700),
                     self.txt(f"Роль: {user.get('role', 'student')}", color=MUTED),
                     self.txt(f"Логин: {user.get('login', '-')}", color=MUTED),
-                ], alignment=ft.alignment.center, spacing=4),
+                ], alignment="center", spacing=4),
                 width=None if self.is_mobile() else 340,
             ),
             self.card(
