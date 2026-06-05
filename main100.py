@@ -952,7 +952,8 @@ class AccessApp:
 
     def stop_camera(self):
         self.camera_running = False
-        if hasattr(self, 'cap') and self.cap:
+        # Проверяем, существует ли вообще такая переменная, прежде чем её освобождать
+        if hasattr(self, 'cap') and self.cap is not None:
             self.cap.release()
             self.cap = None
 
