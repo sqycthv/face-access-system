@@ -927,7 +927,8 @@ class AccessApp:
             elevation=8,
             on_change=lambda e: self.switch_tab(nav_items[e.control.selected_index][0]),
         )
-
+        
+        self.start_camera()
         self.page.add(header, content)
         self.page.update()
 
@@ -943,20 +944,21 @@ class AccessApp:
         self.page.update()
 
     def start_camera(self):
-        # Делаем запуск «ленивым»
+        if not hasattr(self, 'camera_running'):
+            self.camera_running = False
         if not self.camera_running:
             self.camera_running = True
             threading.Thread(target=self.camera_loop, daemon=True).start()
 
     def stop_camera(self):
         self.camera_running = False
-        if self.cap:
+        if hasattr(self, 'cap') and self.cap:
             self.cap.release()
             self.cap = None
 
     def camera_loop(self):
-        # Пытаемся открыть камеру (0 - это встроенная)
         self.cap = cv2.VideoCapture(0)
+        time.sleep(1)
         
         if not self.cap.isOpened():
             print("Ошибка: Камера не найдена")
@@ -965,24 +967,20 @@ class AccessApp:
         while self.camera_running:
             ret, frame = self.cap.read()
             if ret and frame is not None:
-                frame = cv2.flip(frame, 1) 
+                frame = cv2.flip(frame, 1)
                 _, buffer = cv2.imencode('.jpg', frame)
                 b64 = base64.b64encode(buffer).decode('utf-8')
-                
-                # ИСПОЛЬЗУЕМ СЕКРЕТНУЮ КНОПКУ: run_task
-                # Это безопасно обновляет картинку, не ломая интерфейс
                 self.page.run_task(self.update_ui, b64)
-            
-            time.sleep(0.04) 
+            time.sleep(0.04)
 
         if self.cap:
             self.cap.release()
 
-    # Добавьте эту функцию сразу после camera_loop
     def update_ui(self, b64_data):
-        self.live_camera_image.src = f"data:image/jpeg;base64,{b64_data}"
-        self.live_camera_image.update()
-
+        if hasattr(self, 'live_camera_image'):
+            self.live_camera_image.src = f"data:image/jpeg;base64,{b64_data}"
+            self.live_camera_image.update()
+            
     def switch_tab(self, key: str) -> None:
         self.store.cleanup_expired_passes()
 
