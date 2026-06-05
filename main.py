@@ -10,6 +10,9 @@ from typing import Any, Dict, List, Optional, Tuple
 import flet as ft
 import numpy as np
 
+import flet.controls.border
+flet.controls.border.all = ft.border.all
+
 
 ICONS = getattr(ft, "Icons", getattr(ft, "icons", None))
 NAV_BAR_DEST = getattr(ft, "NavigationBarDestination", getattr(ft, "NavigationDestination", None))
