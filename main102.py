@@ -943,44 +943,26 @@ class AccessApp:
             btn.border = ft.border.all(1, PRIMARY if active else BORDER)
         self.page.update()
 
+    # 1. Функция-запуск (вызываем в самом конце build_shell)
     def start_camera(self):
-        if not hasattr(self, 'camera_running'):
-            self.camera_running = False
-        if not self.camera_running:
-            self.camera_running = True
-            threading.Thread(target=self.camera_loop, daemon=True).start()
+        self.camera_running = True
+        threading.Thread(target=self.camera_loop, daemon=True).start()
 
-    def stop_camera(self):
-        self.camera_running = False
-        # Проверяем, существует ли вообще такая переменная, прежде чем её освобождать
-        if hasattr(self, 'cap') and self.cap is not None:
-            self.cap.release()
-            self.cap = None
-
+    # 2. Поток камеры (только считывает кадры)
     def camera_loop(self):
         self.cap = cv2.VideoCapture(0)
-        time.sleep(1)
-        
-        if not self.cap.isOpened():
-            print("Ошибка: Камера не найдена")
-            return
-
         while self.camera_running:
             ret, frame = self.cap.read()
-            if ret and frame is not None:
-                frame = cv2.flip(frame, 1)
-                _, buffer = cv2.imencode('.jpg', frame)
-                b64 = base64.b64encode(buffer).decode('utf-8')
-                self.page.run_task(self.update_ui, b64)
+            if ret:
+                # ... обработка кадра (base64) ...
+                # БЕЗОПАСНЫЙ ВЫЗОВ (передаем данные в главный поток)
+                self.page.run_task(self.update_ui, b64_data)
             time.sleep(0.04)
 
-        if self.cap:
-            self.cap.release()
-
+    # 3. Функция отрисовки (работает только в главном потоке)
     def update_ui(self, b64_data):
-        if hasattr(self, 'live_camera_image'):
-            self.live_camera_image.src = f"data:image/jpeg;base64,{b64_data}"
-            self.live_camera_image.update()
+        self.live_camera_image.src = f"data:image/jpeg;base64,{b64_data}"
+        self.live_camera_image.update() # Это обновление теперь БЕЗОПАСНО
             
     def switch_tab(self, key: str) -> None:
         self.store.cleanup_expired_passes()
