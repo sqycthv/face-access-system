@@ -640,7 +640,7 @@ class AccessApp:
 
     def pill(self, text: str, bg: str, color: str) -> ft.Container:
         return ft.Container(
-            padding=ft.padding.only(horizontal=12, vertical=8),
+            padding=ft.padding.Padding(horizontal=12, vertical=8),
             bgcolor=bg,
             border_radius=999,
             content=ft.Text(text, color=color, size=12, weight=ft.FontWeight.W_700),
@@ -857,7 +857,7 @@ class AccessApp:
             expand=True,
             bgcolor=BG,
             alignment=ft.Alignment(0, 0),
-            padding=ft.padding.only(horizontal=10 if self.is_mobile() else 0),
+            padding=ft.padding.Padding(horizontal=10 if self.is_mobile() else 0),
             content=login_card,
         )
         self.page.add(hero)
@@ -907,7 +907,7 @@ class AccessApp:
 
         header = ft.Container(
             bgcolor=SURFACE,
-            padding=ft.padding.only(horizontal=12 if self.is_mobile() else 24, vertical=12 if self.is_mobile() else 16),
+            padding=ft.padding.Padding(horizontal=12 if self.is_mobile() else 24, vertical=12 if self.is_mobile() else 16),
             border=ft.border.only(bottom=ft.BorderSide(1, BORDER)),
             content=ft.Row([
                 ft.Row([
@@ -925,7 +925,7 @@ class AccessApp:
         content = ft.Container(
             expand=True,
             bgcolor=BG,
-            padding=ft.padding.only(left=10 if self.is_mobile() else 24, top=12 if self.is_mobile() else 20, right=10 if self.is_mobile() else 24, bottom=8),
+            padding=ft.padding.Padding(left=10 if self.is_mobile() else 24, top=12 if self.is_mobile() else 20, right=10 if self.is_mobile() else 24, bottom=8),
             content=self.page_container,
         )
 
@@ -1657,7 +1657,7 @@ class AccessApp:
                                 self.txt(u.get("name", "Без имени"), size=15, weight=ft.FontWeight.W_700),
                                 ft.Container(expand=True),
                                 ft.Container(
-                                    padding=ft.padding.only(horizontal=10, vertical=6),
+                                    padding=ft.padding.Padding(horizontal=10, vertical=6),
                                     border_radius=999,
                                     bgcolor=role_bg,
                                     content=self.txt(role_label, size=11, weight=ft.FontWeight.W_700, color=role_color),
@@ -1698,7 +1698,7 @@ class AccessApp:
                         ft.Container(
                             bgcolor=SURFACE,
                             border_radius=14,
-                            padding=ft.padding.only(left=14, top=10, right=14, bottom=10),
+                            padding=ft.padding.Padding(left=14, top=10, right=14, bottom=10),
                             border=ft.border.all(1, BORDER),
                             content=cb,
                         )
