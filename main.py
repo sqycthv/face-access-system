@@ -640,7 +640,7 @@ class AccessApp:
 
     def pill(self, text: str, bg: str, color: str) -> ft.Container:
         return ft.Container(
-            padding=ft.padding.Padding(horizontal=12, vertical=8),
+            padding=ft.padding.Padding(left=12, rigth=8),
             bgcolor=bg,
             border_radius=999,
             content=ft.Text(text, color=color, size=12, weight=ft.FontWeight.W_700),
@@ -786,7 +786,7 @@ class AccessApp:
         self.page.navigation_bar = None
         self.page.scroll = ft.ScrollMode.HIDDEN
         self.page.vertical_alignment = ft.MainAxisAlignment.CENTER
-        self.page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+        self.page.alignment = ft.alignment.center
 
         self.login_field = ft.TextField(
             label="Логин",
@@ -850,14 +850,14 @@ class AccessApp:
                     on_click=do_login,
                 ),
                 self.login_message,
-            ], spacing=14, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+            ], spacing=14, alignment=ft.alignment.center),
         )
 
         hero = ft.Container(
             expand=True,
             bgcolor=BG,
             alignment=ft.Alignment(0, 0),
-            padding=ft.padding.Padding(horizontal=10 if self.is_mobile() else 0),
+            padding=ft.padding.Padding(left=10 if self.is_mobile() else 0),
             content=login_card,
         )
         self.page.add(hero)
@@ -899,7 +899,7 @@ class AccessApp:
     def build_shell(self) -> None:
         self.page.clean()
         self.page.vertical_alignment = ft.MainAxisAlignment.START
-        self.page.horizontal_alignment = ft.CrossAxisAlignment.STRETCH
+        self.page.alignment = ft.CrossAxisAlignment.STRETCH
         self.page.scroll = ft.ScrollMode.HIDDEN
 
         user = self.current_user or {}
@@ -907,7 +907,7 @@ class AccessApp:
 
         header = ft.Container(
             bgcolor=SURFACE,
-            padding=ft.padding.Padding(horizontal=12 if self.is_mobile() else 24, vertical=12 if self.is_mobile() else 16),
+            padding=ft.padding.Padding(left=12 if self.is_mobile() else 24, vertical=12 if self.is_mobile() else 16),
             border=ft.border.only(bottom=ft.BorderSide(1, BORDER)),
             content=ft.Row([
                 ft.Row([
@@ -1383,7 +1383,7 @@ class AccessApp:
                     self.txt(user.get("name", "Пользователь"), size=24, weight=ft.FontWeight.W_700),
                     self.txt(f"Роль: {user.get('role', 'student')}", color=MUTED),
                     self.txt(f"Логин: {user.get('login', '-')}", color=MUTED),
-                ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=4),
+                ], alignment=ft.alignment.center, spacing=4),
                 width=None if self.is_mobile() else 340,
             ),
             self.card(
@@ -1657,7 +1657,7 @@ class AccessApp:
                                 self.txt(u.get("name", "Без имени"), size=15, weight=ft.FontWeight.W_700),
                                 ft.Container(expand=True),
                                 ft.Container(
-                                    padding=ft.padding.Padding(horizontal=10, vertical=6),
+                                    padding=ft.padding.Padding(left=10, right=6),
                                     border_radius=999,
                                     bgcolor=role_bg,
                                     content=self.txt(role_label, size=11, weight=ft.FontWeight.W_700, color=role_color),
