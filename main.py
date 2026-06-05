@@ -7,7 +7,6 @@ import threading
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
-
 import flet as ft
 import numpy as np
 
@@ -537,6 +536,7 @@ class DataStore:
 
         self.save_all()
         return True, f"Фото очищены: {removed}"
+        
     def metrics(self) -> Dict[str, Any]:
         self.cleanup_expired_passes()
         total = max(1, len(self.logs))
@@ -593,8 +593,6 @@ class AccessApp:
         self.page.bgcolor = BG
         self.page.padding = 0
         self.page.theme_mode = ft.ThemeMode.LIGHT
-        # FULL MOBILE: окно сразу открывается как телефон.
-        # В браузере телефона интерфейс растягивается по ширине экрана.
         self.page.window_width = 390
         self.page.window_height = 844
         self.page.window_min_width = 320
@@ -609,7 +607,6 @@ class AccessApp:
         return ft.Text(value, size=size, color=color, weight=weight)
 
     def is_mobile(self) -> bool:
-        """True, если окно похоже на телефонный экран."""
         try:
             return (self.page.width or 420) <= 720
         except Exception:
@@ -634,14 +631,13 @@ class AccessApp:
             return desktop_width
 
     def adaptive_row(self, controls: List[ft.Control], spacing: int = 14, expand: bool = False, **kwargs) -> ft.Control:
-        """На телефоне ставит элементы друг под другом, на ноутбуке — в строку."""
         if self.is_mobile():
             return ft.Column(controls, spacing=spacing, expand=expand)
         return ft.Row(controls, spacing=spacing, expand=expand, **kwargs)
 
     def pill(self, text: str, bg: str, color: str) -> ft.Container:
         return ft.Container(
-            padding=ft.padding.Padding(left=12, right=8),
+            padding=ft.padding.symmetric(horizontal=12, vertical=8),
             bgcolor=bg,
             border_radius=999,
             content=ft.Text(text, color=color, size=12, weight=ft.FontWeight.W_700),
@@ -719,7 +715,7 @@ class AccessApp:
         return ft.Container(
             bgcolor=AMBER_SOFT,
             border_radius=18,
-            border=ft.border.all(1, BORDER),
+            border=ft.border.all(1, "#FED7AA"),
             padding=14,
             content=ft.Row([
                 ft.Icon(icon("NOTIFICATIONS_ACTIVE_ROUNDED"), color=AMBER),
@@ -781,13 +777,12 @@ class AccessApp:
         self.build_shell()
         self.switch_tab(current)
 
-
     def build_login_view(self) -> None:
         self.page.clean()
         self.page.navigation_bar = None
         self.page.scroll = ft.ScrollMode.HIDDEN
         self.page.vertical_alignment = ft.MainAxisAlignment.CENTER
-        self.page.alignment = "center"
+        self.page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
         self.login_field = ft.TextField(
             label="Логин",
@@ -851,14 +846,13 @@ class AccessApp:
                     on_click=do_login,
                 ),
                 self.login_message,
-            ], spacing=14, alignment="center"),
+            ], spacing=14, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
         )
-
         hero = ft.Container(
             expand=True,
             bgcolor=BG,
             alignment=ft.Alignment(0, 0),
-            padding=ft.padding.Padding(left=10 if self.is_mobile() else 0),
+            padding=ft.padding.symmetric(horizontal=10 if self.is_mobile() else 0),
             content=login_card,
         )
         self.page.add(hero)
@@ -866,7 +860,6 @@ class AccessApp:
 
     def logout(self) -> None:
         self.stop_camera()
-
         self.current_user = None
         self.current_tab = "home"
         self.build_login_view()
@@ -900,59 +893,45 @@ class AccessApp:
     def build_shell(self) -> None:
         self.page.clean()
         self.page.vertical_alignment = ft.MainAxisAlignment.START
-        self.page.alignment = ft.CrossAxisAlignment.STRETCH
+        self.page.horizontal_alignment = ft.CrossAxisAlignment.STRETCH
         self.page.scroll = ft.ScrollMode.HIDDEN
-
         user = self.current_user or {}
         role_label = {"student": "Студент", "teacher": "Преподаватель", "admin": "Админ"}.get(user.get("role"), "Пользователь")
 
         header = ft.Container(
             bgcolor=SURFACE,
-            padding=ft.padding.Padding(left=12 if self.is_mobile() else 24, vertical=12 if self.is_mobile() else 16),
-            border=ft.border.all(1, BORDER),
+            padding=ft.padding.symmetric(horizontal=12 if self.is_mobile() else 24, vertical=12 if self.is_mobile() else 16),
+            border=ft.border.only(bottom=ft.BorderSide(1, BORDER)),
             content=ft.Row([
                 ft.Row([
                     ft.Icon(icon("VERIFIED_USER_ROUNDED"), color=PRIMARY, size=28),
                     self.txt("Face Access", size=17 if self.is_mobile() else 20, weight=ft.FontWeight.W_700),
-                ], spacing=10),
+                ], spacing=8),
                 ft.Container(expand=True),
                 ft.Row([
-                    self.txt(f"{user.get('name', '')} ({role_label})", size=14, color=MUTED),
-                    ft.IconButton(icon("LOGOUT_ROUNDED"), icon_color=RED, on_click=lambda e: self.logout())
-                ])
+                    self.txt(user.get('name', ''), weight=ft.FontWeight.W_700, size=13 if self.is_mobile() else 14),
+                    self.pill(role_label, PRIMARY_SOFT, PRIMARY),
+                    ft.IconButton(icon=icon("LOGOUT_ROUNDED"), icon_color=RED, icon_size=20, on_click=lambda _: self.logout()),
+                ], spacing=10),
             ])
         )
 
-        content = ft.Container(
-            expand=True,
-            bgcolor=BG,
-            padding=ft.padding.Padding(left=10 if self.is_mobile() else 24, top=12 if self.is_mobile() else 20, right=10 if self.is_mobile() else 24, bottom=8),
-            content=self.page_container,
-        )
-
         nav_items = self.get_nav_items()
+        if self.is_mobile():
         destinations = []
         for key, label, nav_icon in nav_items:
-            if NAV_BAR_DEST is not None:
-                try:
-                    destinations.append(NAV_BAR_DEST(icon=nav_icon, selected_icon=nav_icon, label=label))
-                except TypeError:
-                    destinations.append(NAV_BAR_DEST(icon=nav_icon, label=label))
+            destinations.append(NAV_BAR_DEST(icon=ico, label=label))
+
+        def on_nav_change(e):
+            idx = int(e.data)
+            if 0 <= idx < len(nav_items):
+                self.switch_tab(nav_items[idx][0])
 
         self.page.navigation_bar = ft.NavigationBar(
-            destinations=destinations,
-            selected_index=0,
-            label_behavior=ft.NavigationBarLabelBehavior.ALWAYS_SHOW,
-            height=70 if self.is_mobile() else 78,
-            bgcolor=SURFACE,
-            indicator_color=PRIMARY_SOFT,
-            elevation=8,
-            on_change=lambda e: self.switch_tab(nav_items[e.control.selected_index][0]),
+            destinations=destinations, on_change=on_nav_change, bgcolor=SURFACE, border=ft.border.only(top=ft.BorderSide(1, BORDER)),
         )
-
-        self.page.add(header, content)
-        self.page.update()
-
+        body = ft.Column([header, ft.Container(content=self.page_container, expand=True)], expand=True, spacing=0)
+        self.page.add(body)
 
     def update_sidebar(self) -> None:
         for key, btn in self.sidebar_buttons.items():
@@ -961,7 +940,7 @@ class AccessApp:
             row = btn.content
             row.controls[0].color = "white" if active else MUTED
             row.controls[1].color = "white" if active else TEXT
-            btn.border = 1
+            btn.border = ft.border.all(1, PRIMARY if active else BORDER)
         self.page.update()
 
     def start_camera(self):
@@ -992,7 +971,7 @@ class AccessApp:
                 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp|timeout;5000000"
                 self.cap = cv2.VideoCapture("rtsp://admin:Nursaya_19@172.16.9.21:554/Streaming/Channels/101")
             except Exception as e:
-                print(f"Ошибка подключения к RTSP: {e}")
+                print(f"Ошибка подключения к IP-камере: {e}")
                 self.cap = None
 
         if self.cap is None or not self.cap.isOpened():
@@ -1005,6 +984,8 @@ class AccessApp:
                 pass
             self.camera_running = False
             return
+
+        while self.camera_running:
 
         while self.camera_running:
             ret, frame = self.cap.read()
@@ -1397,7 +1378,7 @@ class AccessApp:
                     self.txt(user.get("name", "Пользователь"), size=24, weight=ft.FontWeight.W_700),
                     self.txt(f"Роль: {user.get('role', 'student')}", color=MUTED),
                     self.txt(f"Логин: {user.get('login', '-')}", color=MUTED),
-                ], alignment="center", spacing=4),
+                ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=4),
                 width=None if self.is_mobile() else 340,
             ),
             self.card(
@@ -1671,7 +1652,7 @@ class AccessApp:
                                 self.txt(u.get("name", "Без имени"), size=15, weight=ft.FontWeight.W_700),
                                 ft.Container(expand=True),
                                 ft.Container(
-                                    padding=ft.padding.Padding(left=10, right=6),
+                                    padding=ft.padding.symmetric(horizontal=10, vertical=6),
                                     border_radius=999,
                                     bgcolor=role_bg,
                                     content=self.txt(role_label, size=11, weight=ft.FontWeight.W_700, color=role_color),
@@ -1712,7 +1693,7 @@ class AccessApp:
                         ft.Container(
                             bgcolor=SURFACE,
                             border_radius=14,
-                            padding=ft.padding.Padding(left=14, top=10, right=14, bottom=10),
+                            padding=ft.padding.only(left=14, top=10, right=14, bottom=10),
                             border=ft.border.all(1, BORDER),
                             content=cb,
                         )
@@ -2017,11 +1998,6 @@ def main(page: ft.Page):
     AccessApp(page)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8502))
-
-    ft.app(
-        target=main, 
-        view=ft.AppView.WEB_BROWSER, 
-        port=port,
-        host="0.0.0.0"
-    )
+    # Можно запускать обычной командой: python main.py
+    # host="0.0.0.0" нужен, чтобы телефон видел проект в одной сети.
+    ft.app(target=main, view=ft.AppView.WEB_BROWSER, host="0.0.0.0", port=10000)
