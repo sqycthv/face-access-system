@@ -2003,6 +2003,4 @@ def main(page: ft.Page):
     AccessApp(page)
 
 if __name__ == "__main__":
-    # Можно запускать обычной командой: python main.py
-    # host="0.0.0.0" нужен, чтобы телефон видел проект в одной сети.
     ft.app(target=main, view=ft.AppView.FLET_APP)
